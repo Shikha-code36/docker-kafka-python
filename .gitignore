@@ -15,3 +15,5 @@ build/
 
 # Cache directories
 __pycache__/
+
+**/.env
