@@ -1,10 +1,10 @@
 import cv2
 from kafka import KafkaProducer
+from dotenv import load_dotenv
 import os
 
 # Load environment variables
-from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(dotenv_path="../.env")
 
 # Kafka configuration
 KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', 'distributed-streaming-system')
