@@ -3,13 +3,16 @@ from kafka import KafkaConsumer
 import numpy as np
 from dotenv import load_dotenv
 import os
+import time 
 
+# Sleep for 15 seconds
+time.sleep(15)
 # Load environment variables from .env file
 load_dotenv(dotenv_path="../.env")
 
 # Kafka configuration
 KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', 'distributed-streaming-system')
-KAFKA_BROKER_URL = os.getenv('KAFKA_BROKER_URL', 'localhost:9092')
+KAFKA_BROKER_URL = os.getenv('KAFKA_BROKER_URL', 'kafka:9092')
 
 # OpenCV display window configuration
 WINDOW_NAME = 'frame'
@@ -19,6 +22,7 @@ if __name__ == '__main__':
     consumer = KafkaConsumer(
         KAFKA_TOPIC,
         bootstrap_servers=KAFKA_BROKER_URL,
+        api_version=(2, 8, 1),
         value_deserializer=lambda x: cv2.imdecode(
             np.frombuffer(x, np.uint8),
             cv2.IMREAD_COLOR

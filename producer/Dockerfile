@@ -1,6 +1,10 @@
 FROM python:3.8
 
-RUN apt-get update && apt-get install -y libgl1-mesa-glx
+RUN apt-get update && apt-get install -y libgl1-mesa-glx \
+    libopencv-dev \
+    python3-opencv \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /app
 
