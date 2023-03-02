@@ -1,38 +1,35 @@
 version: '3'
 
 services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - zookeeper
+      - kafka
+
   zookeeper:
     image: wurstmeister/zookeeper
     ports:
       - "2181:2181"
 
   kafka:
-    image: wurstmeister/kafka
-    depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
+    image: wurstmeister/kafka:2.12-2.8.0
     environment:
       KAFKA_ADVERTISED_HOST_NAME: kafka
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-
-  producer:
-    build:
-      context: ./producer
+      KAFKA_CREATE_TOPICS: "frames:1:1"
+    ports:
+      - "9092:9092"
     depends_on:
-      - kafka
-    environment:
-      KAFKA_TOPIC: ${KAFKA_TOPIC}
-      KAFKA_BROKER_URL: kafka:9092
-      # CAMERA_DEVICE_INDEX: ${CAMERA_DEVICE_INDEX}
-      CAMERA_WIDTH: ${CAMERA_WIDTH}
-      CAMERA_HEIGHT: ${CAMERA_HEIGHT}
-
-  consumer:
-    build:
-      context: ./consumer
-    depends_on:
-      - kafka
-    environment:
-      KAFKA_TOPIC: ${KAFKA_TOPIC}
-      KAFKA_BROKER_URL: kafka:9092
+      - zookeeper
