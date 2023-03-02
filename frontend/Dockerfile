@@ -2,7 +2,6 @@ FROM node:14-slim
 
 WORKDIR /app
 
-COPY . .
+COPY index.html script.js ./
 
-RUN touch package.json && npm install
-
+CMD [ "npm", "start" ]
