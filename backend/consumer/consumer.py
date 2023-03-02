@@ -1,40 +1,41 @@
-from kafka import KafkaConsumer
-from PIL import Image
-import io
-import base64
-import json
+import os
+import sys
 import cv2
 import numpy as np
+from kafka import KafkaConsumer
 
-# create a Kafka consumer instance
+# Set up Kafka consumer
 consumer = KafkaConsumer(
     'frames',
     bootstrap_servers=['localhost:9092'],
-    value_deserializer=lambda x: json.loads(x.decode('utf-8')),
-    auto_offset_reset='earliest'
-)
+    auto_offset_reset='earliest',
+    enable_auto_commit=True,
+    group_id='my-group')
 
-# iterate over the messages in the 'frames' topic
-for message in consumer:
-    # get the frame data from the message value
-    frame_data = message.value['data']
+# Set up output directory for processed frames
+output_dir = 'processed_frames'
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
-    # decode the frame data from base64
-    image_data = base64.b64decode(frame_data)
+# Process frames up to a certain limit
+frame_limit = 100
+for i, message in enumerate(consumer):
+    # Break if we have reached the frame limit
+    if i >= frame_limit:
+        break
 
-    # open the image
-    image = Image.open(io.BytesIO(image_data))
+    # Convert message to OpenCV image
+    nparr = np.frombuffer(message.value, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    # process the image
-    # convert the image to grayscale
-    gray_image = image.convert('L')
+    # Apply image processing
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    edges = cv2.Canny(blurred, 50, 150)
+    kernel = np.ones((5, 5), np.uint8)
+    dilation = cv2.dilate(edges, kernel, iterations=1)
+    img = cv2.cvtColor(dilation, cv2.COLOR_GRAY2BGR)
 
-    # perform edge detection using the Canny algorithm
-    edges = cv2.Canny(np.array(gray_image), 100, 200)
-
-    # convert the edges back to an image
-    processed_image = Image.fromarray(edges)
-
-    # display the processed image
-    cv2.imshow('Processed Image', np.array(processed_image))
-    cv2.waitKey(1)
+    # Save processed image to disk
+    output_path = os.path.join(output_dir, f'frame_{i}.jpg')
+    cv2.imwrite(output_path, img)

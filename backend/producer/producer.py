@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from kafka import KafkaProducer
+from flask_cors import cross_origin
 from PIL import Image
 import io
 import base64
@@ -8,11 +9,13 @@ import json
 producer_bp = Blueprint('producer_bp', __name__)
 
 producer = KafkaProducer(
-    bootstrap_servers=['localhost:9092'],
+    bootstrap_servers=['kafka:9092'],  # Update the bootstrap server URL to match the Docker service name
+    api_version=(2, 8, 1),
     value_serializer=lambda x: json.dumps(x).encode('utf-8')
 )
 
 @producer_bp.route('/api/frame', methods=['POST'])
+@cross_origin()
 def send_frame():
     # get the frame from the request
     frame_data = request.json['imageData']

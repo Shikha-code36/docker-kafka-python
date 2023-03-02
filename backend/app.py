@@ -1,5 +1,5 @@
 from flask import Flask
-from backend.producer import producer_bp
+from producer import producer_bp
 
 app = Flask(__name__)
 
