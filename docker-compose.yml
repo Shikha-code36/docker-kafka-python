@@ -1,22 +1,30 @@
-version: '3'
+version: '3.8'
 
 services:
-  frontend:
-    build:
-      context: ./frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-
   backend:
-    build:
-      context: ./backend
+    build: ./backend
     ports:
       - "5000:5000"
     depends_on:
-      - zookeeper
       - kafka
+      - zookeeper
+
+  producer:
+    build: ./backend/producer
+    depends_on:
+      - kafka
+      - zookeeper
+
+  consumer:
+    build: ./backend/consumer
+    depends_on:
+      - kafka
+      - zookeeper
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
 
   zookeeper:
     image: wurstmeister/zookeeper
@@ -24,7 +32,7 @@ services:
       - "2181:2181"
 
   kafka:
-    image: wurstmeister/kafka:2.12-2.8.0
+    image: wurstmeister/kafka
     environment:
       KAFKA_ADVERTISED_HOST_NAME: kafka
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181

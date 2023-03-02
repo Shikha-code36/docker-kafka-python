@@ -4,6 +4,5 @@ WORKDIR /app
 
 COPY . .
 
-RUN npm install
+RUN touch package.json && npm install
 
-CMD [ "npm", "start" ]

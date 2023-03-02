@@ -7,6 +7,8 @@ COPY requirements.txt .
 RUN apt-get update && apt-get install -y libgl1-mesa-glx && apt-get clean && \
     pip install --no-cache-dir -r requirements.txt
 
+RUN pip install flask-cors
+
 COPY . .
 
 CMD [ "python", "app.py" ]

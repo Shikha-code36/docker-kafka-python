@@ -7,9 +7,9 @@ from kafka import KafkaConsumer
 consumer = KafkaConsumer(
     'frames',
     bootstrap_servers=['kafka:9092'],
+    api_version=(2, 8, 1),
     auto_offset_reset='earliest',
-    enable_auto_commit=True,
-    group_id='my-group')
+    enable_auto_commit=True)
 
 # Set up output directory for processed frames
 output_dir = 'processed_frames'
