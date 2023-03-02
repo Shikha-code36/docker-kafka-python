@@ -9,10 +9,12 @@ import json
 producer_bp = Blueprint('producer_bp', __name__)
 
 producer = KafkaProducer(
-    bootstrap_servers=['kafka:9092'],  # Update the bootstrap server URL to match the Docker service name
+    bootstrap_servers=['kafka:9092'],
     api_version=(2, 8, 1),
-    value_serializer=lambda x: json.dumps(x).encode('utf-8')
+    value_serializer=lambda x: json.dumps(x).encode('utf-8'),
+    request_timeout_ms=10000  # set timeout to 10 seconds
 )
+
 
 @producer_bp.route('/api/frame', methods=['POST'])
 @cross_origin()

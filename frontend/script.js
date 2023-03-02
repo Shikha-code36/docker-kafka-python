@@ -31,5 +31,5 @@ captureBtn.addEventListener('click', () => {
     xhr.onerror = function() {
         console.error('Error sending request');
     };
-    xhr.send(JSON.stringify({imageData}));
+    xhr.send(JSON.stringify({imageData: imageData}));
 });
