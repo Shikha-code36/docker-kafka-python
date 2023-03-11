@@ -1,7 +1,11 @@
-FROM node:14-slim
+# Use a base image
+FROM nginx:alpine
 
-WORKDIR /app
+# Copy the frontend files to the Docker container
+COPY . /usr/share/nginx/html/
 
-COPY index.html script.js ./
+# Expose the port for the container
+EXPOSE 80
 
-CMD [ "npm", "start" ]
+# Start NGINX
+CMD ["nginx", "-g", "daemon off;"]

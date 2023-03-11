@@ -1,40 +1,44 @@
-import os
+from confluent_kafka import Consumer, KafkaError
 import cv2
-import numpy as np
-from kafka import KafkaConsumer
 
-# Set up Kafka consumer
-consumer = KafkaConsumer(
-    'frames',
-    bootstrap_servers=['kafka:9092'],
-    api_version=(2, 8, 1),
-    auto_offset_reset='earliest',
-    enable_auto_commit=True)
+topic = 'frame_topic'
 
-# Set up output directory for processed frames
-output_dir = 'processed_frames'
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
+# Create Kafka consumer instance
+conf = {'bootstrap.servers': 'localhost:9092', 'group.id': 'my_group',
+        'auto.offset.reset': 'earliest'}
+consumer = Consumer(conf)
+consumer.subscribe([topic])
 
-# Process frames up to a certain limit
-frame_limit = 100
-for i, message in enumerate(consumer):
-    # Break if we have reached the frame limit
-    if i >= frame_limit:
-        break
+# Create window to display frames
+cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
 
-    # Convert message to OpenCV image
-    nparr = np.frombuffer(message.value, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+def process_frame(frame):
+    # Process frame here (e.g. apply filters, etc.)
+    # Return processed frame
+    return frame
 
-    # Apply image processing
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    edges = cv2.Canny(blurred, 50, 150)
-    kernel = np.ones((5, 5), np.uint8)
-    dilation = cv2.dilate(edges, kernel, iterations=1)
-    img = cv2.cvtColor(dilation, cv2.COLOR_GRAY2BGR)
+while True:
+    msg = consumer.poll(1.0)
 
-    # Save processed image to disk
-    output_path = os.path.join(output_dir, f'frame_{i}.jpg')
-    cv2.imwrite(output_path, img)
+    if msg is None:
+        continue
+    if msg.error():
+        if msg.error().code() == KafkaError._PARTITION_EOF:
+            print('End of partition reached {0}/{1}'
+                  .format(msg.topic(), msg.partition()))
+        else:
+            print('Error while consuming message: {0}'.format(msg.error()))
+    else:
+        # Decode frame from bytes and process it
+        frame_bytes = msg.value()
+        frame = cv2.imdecode(frame_bytes, cv2.IMREAD_COLOR)
+        processed_frame = process_frame(frame)
+
+        # Display the processed frame
+        cv2.imshow('frame', processed_frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+# Release the resources
+consumer.close()
+cv2.destroyAllWindows()

@@ -5,6 +5,8 @@ services:
     build: ./backend
     ports:
       - "5000:5000"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
     depends_on:
       - kafka
       - zookeeper
@@ -27,17 +29,19 @@ services:
       - "80:80"
 
   zookeeper:
-    image: wurstmeister/zookeeper
-    ports:
-      - "2181:2181"
+    image: confluentinc/cp-zookeeper
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
 
   kafka:
-    image: wurstmeister/kafka
-    environment:
-      KAFKA_ADVERTISED_HOST_NAME: kafka
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_CREATE_TOPICS: "frames:1:1"
+    image: confluentinc/cp-kafka
     ports:
       - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://0.0.0.0:9092 
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092 
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
       - zookeeper
